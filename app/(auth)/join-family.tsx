@@ -1,0 +1,140 @@
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../../src/core/theme/colors';
+import { FamilyButton } from '../../src/core/theme/components/FamilyButton';
+import { registerUser } from '../../src/features/auth/services/authService';
+import { joinFamily } from '../../src/features/auth/services/familyService';
+
+export default function JoinFamilyScreen() {
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const inputRefs = useRef<(TextInput | null)[]>([]);
+
+  function handleCodeChange(value: string, index: number) {
+    const digit = value.replace(/[^0-9]/g, '').slice(-1);
+    const newCode = [...code];
+    newCode[index] = digit;
+    setCode(newCode);
+    if (digit && index < 5) inputRefs.current[index + 1]?.focus();
+  }
+
+  function handleCodeKeyPress(key: string, index: number) {
+    if (key === 'Backspace' && !code[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  }
+
+  async function handleJoin() {
+    const inviteCode = code.join('');
+    if (!name || !email || !password) { Alert.alert('שגיאה', 'נא למלא את כל הפרטים'); return; }
+    if (inviteCode.length !== 6) { Alert.alert('שגיאה', 'נא להזין קוד של 6 ספרות'); return; }
+    if (password.length < 6) { Alert.alert('שגיאה', 'הסיסמה חייבת להכיל לפחות 6 תווים'); return; }
+
+    setLoading(true);
+    try {
+      const user = await registerUser(email, password, name, 'child');
+      await joinFamily(inviteCode, user.uid);
+      router.replace('/(tabs)');
+    } catch (err: any) {
+      Alert.alert('שגיאה', err.code === 'auth/email-already-in-use' ? 'האימייל כבר קיים' : err.message ?? 'אירעה שגיאה.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
+        <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+          <TouchableOpacity style={styles.back} onPress={() => router.back()}>
+            <Text style={styles.backText}>← חזרה</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.title}>הצטרף למשפחה</Text>
+          <Text style={styles.subtitle}>הזן את קוד ההזמנה שקיבלת</Text>
+
+          {/* OTP Code */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>קוד הזמנה</Text>
+            <View style={styles.codeRow}>
+              {code.map((digit, i) => (
+                <TextInput
+                  key={i}
+                  ref={(ref) => { inputRefs.current[i] = ref; }}
+                  style={[styles.codeBox, digit ? styles.codeBoxFilled : null]}
+                  value={digit}
+                  onChangeText={(v) => handleCodeChange(v, i)}
+                  onKeyPress={({ nativeEvent }) => handleCodeKeyPress(nativeEvent.key, i)}
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  textAlign="center"
+                  selectTextOnFocus
+                />
+              ))}
+            </View>
+          </View>
+
+          {/* Personal Info */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>פרטים אישיים</Text>
+
+            <Text style={styles.label}>שם מלא</Text>
+            <TextInput style={styles.input} placeholder="ישראל ישראלי" placeholderTextColor={Colors.textMuted} value={name} onChangeText={setName} textAlign="right" />
+
+            <Text style={styles.label}>אימייל</Text>
+            <TextInput style={styles.input} placeholder="name@example.com" placeholderTextColor={Colors.textMuted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" textAlign="right" />
+
+            <Text style={styles.label}>סיסמה</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput style={[styles.input, styles.inputWithIcon]} placeholder="לפחות 6 תווים" placeholderTextColor={Colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} textAlign="right" />
+              <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(v => !v)}>
+                <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <FamilyButton title="הצטרף למשפחה" loading={loading} onPress={handleJoin} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  container: { flex: 1, backgroundColor: Colors.background },
+  inner: { paddingHorizontal: 28, paddingTop: 16, paddingBottom: 32 },
+  back: { marginBottom: 24 },
+  backText: { color: Colors.primary, fontSize: 15, fontWeight: '600' },
+  title: { fontSize: 26, fontWeight: '800', color: Colors.text, textAlign: 'right', marginBottom: 6 },
+  subtitle: { fontSize: 14, color: Colors.textMuted, textAlign: 'right', marginBottom: 28 },
+  section: { backgroundColor: Colors.white, borderRadius: 20, padding: 20, marginBottom: 16, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 2 },
+  sectionTitle: { fontSize: 12, fontWeight: '700', color: Colors.primary, textAlign: 'right', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 0.8 },
+  codeRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', gap: 8 },
+  codeBox: { flex: 1, height: 56, borderRadius: 14, borderWidth: 1.5, borderColor: Colors.inputBorder, backgroundColor: Colors.inputBg, color: Colors.text, fontSize: 24, fontWeight: '700' },
+  codeBoxFilled: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
+  label: { color: Colors.text, fontSize: 13, fontWeight: '600', marginBottom: 8, textAlign: 'right' },
+  input: { backgroundColor: Colors.inputBg, borderRadius: 14, height: 52, paddingHorizontal: 16, color: Colors.text, fontSize: 15, marginBottom: 14, borderWidth: 1.5, borderColor: Colors.inputBorder },
+  inputWrapper: { position: 'relative', marginBottom: 14 },
+  inputWithIcon: { marginBottom: 0, paddingLeft: 44 },
+  eyeBtn: { position: 'absolute', left: 12, top: 14 },
+  eyeIcon: { fontSize: 20 },
+});
