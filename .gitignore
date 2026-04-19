@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+# Environment variables
+.env.local
+.env*.local
+
 # Expo
 .expo/
 dist/
@@ -39,3 +43,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Claude Code
+.claude/
