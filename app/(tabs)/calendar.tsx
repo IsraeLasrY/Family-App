@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DateData } from 'react-native-calendars';
@@ -38,10 +39,6 @@ function toDateString(date: any): string {
   return d.toISOString().split('T')[0]; // YYYY-MM-DD
 }
 
-function formatDate(date: any): string {
-  const d = date?.toDate ? date.toDate() : new Date(date);
-  return d.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'long' });
-}
 
 export default function CalendarScreen() {
   const { userDoc, user } = useAuth();
@@ -67,7 +64,6 @@ export default function CalendarScreen() {
   const markedDates: Record<string, any> = {};
   events.forEach((e) => {
     const key = toDateString(e.date);
-    const meta = categoryMeta(e.category);
     if (!markedDates[key]) {
       markedDates[key] = { dots: [], marked: true };
     }
@@ -181,7 +177,7 @@ export default function CalendarScreen() {
 
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>אירוע חדש</Text>
 
@@ -271,7 +267,7 @@ export default function CalendarScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -305,7 +301,7 @@ const styles = StyleSheet.create({
   deleteBtn: { padding: 6 },
   deleteBtnText: { fontSize: 16, color: '#FF5252' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  modalCard: { backgroundColor: Colors.white, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 28, paddingBottom: 40 },
+  modalCard: { backgroundColor: Colors.white, borderRadius: 28, padding: 28, paddingBottom: 40 },
   modalTitle: { fontSize: 20, fontWeight: '800', color: Colors.text, textAlign: 'right', marginBottom: 20 },
   fieldLabel: { fontSize: 13, fontWeight: '600', color: Colors.text, textAlign: 'right', marginBottom: 8 },
   input: { backgroundColor: Colors.inputBg, borderRadius: 14, height: 52, paddingHorizontal: 16, color: Colors.text, fontSize: 15, marginBottom: 16, borderWidth: 1.5, borderColor: Colors.inputBorder },

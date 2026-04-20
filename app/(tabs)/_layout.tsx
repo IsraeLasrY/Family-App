@@ -18,6 +18,13 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="shopping"
+        options={{
+          title: 'קניות',
+          tabBarIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="calendar"
         options={{
           title: 'לוח שנה',
