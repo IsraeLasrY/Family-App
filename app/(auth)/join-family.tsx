@@ -71,7 +71,7 @@ export default function JoinFamilyScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-            <Text style={styles.backText}>← חזרה</Text>
+            <Text style={styles.backText}>חזרה →</Text>
           </TouchableOpacity>
 
           <Text style={styles.title}>הצטרף למשפחה</Text>
@@ -110,7 +110,7 @@ export default function JoinFamilyScreen() {
 
             <Text style={styles.label}>סיסמה</Text>
             <View style={styles.inputWrapper}>
-              <TextInput style={[styles.input, styles.inputWithIcon]} placeholder="לפחות 6 תווים" placeholderTextColor={Colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} textAlign="right" />
+              <TextInput style={[styles.input, styles.inputWithIcon]} placeholder="לפחות 8 תווים, אות גדולה וספרה" placeholderTextColor={Colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} textAlign="right" />
               <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(v => !v)}>
                 <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
               </TouchableOpacity>
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: Colors.textMuted, textAlign: 'right', marginBottom: 28 },
   section: { backgroundColor: Colors.white, borderRadius: 20, padding: 20, marginBottom: 16, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 8, elevation: 2 },
   sectionTitle: { fontSize: 12, fontWeight: '700', color: Colors.primary, textAlign: 'right', marginBottom: 16, textTransform: 'uppercase', letterSpacing: 0.8 },
-  codeRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', gap: 8 },
+  codeRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
   codeBox: { flex: 1, height: 56, borderRadius: 14, borderWidth: 1.5, borderColor: Colors.inputBorder, backgroundColor: Colors.inputBg, color: Colors.text, fontSize: 24, fontWeight: '700' },
   codeBoxFilled: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
   label: { color: Colors.text, fontSize: 13, fontWeight: '600', marginBottom: 8, textAlign: 'right' },

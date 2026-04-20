@@ -59,7 +59,7 @@ export default function CreateFamilyScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
         <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
           <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-            <Text style={styles.backText}>← חזרה</Text>
+            <Text style={styles.backText}>חזרה →</Text>
           </TouchableOpacity>
 
           <Text style={styles.title}>צור משפחה חדשה</Text>
@@ -76,7 +76,7 @@ export default function CreateFamilyScreen() {
 
             <Text style={styles.label}>סיסמה</Text>
             <View style={styles.inputWrapper}>
-              <TextInput style={[styles.input, styles.inputWithIcon]} placeholder="לפחות 6 תווים" placeholderTextColor={Colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} textAlign="right" />
+              <TextInput style={[styles.input, styles.inputWithIcon]} placeholder="לפחות 8 תווים, אות גדולה וספרה" placeholderTextColor={Colors.textMuted} value={password} onChangeText={setPassword} secureTextEntry={!showPassword} textAlign="right" />
               <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(v => !v)}>
                 <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
               </TouchableOpacity>

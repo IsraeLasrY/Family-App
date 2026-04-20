@@ -5,30 +5,38 @@ import { getUserDoc } from '../services/authService';
 import { FamilyUser } from '../../../types';
 
 export interface AuthState {
-  firebaseUser: FirebaseUser | null;
+  user: FirebaseUser | null;
+  firebaseUser: FirebaseUser | null; // alias for backwards compat
   userDoc: FamilyUser | null;
   loading: boolean;
+  setUserDoc: (updater: (prev: FamilyUser | null) => FamilyUser | null) => void;
 }
 
 export function useAuth(): AuthState {
-  const [state, setState] = useState<AuthState>({
-    firebaseUser: null,
-    userDoc: null,
-    loading: true,
-  });
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [userDoc, setUserDoc] = useState<FamilyUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
       if (user) {
-        const userDoc = await getUserDoc(user.uid);
-        setState({ firebaseUser: user, userDoc, loading: false });
+        const doc = await getUserDoc(user.uid);
+        setUserDoc(doc);
       } else {
-        setState({ firebaseUser: null, userDoc: null, loading: false });
+        setUserDoc(null);
       }
+      setLoading(false);
     });
 
     return unsubscribe;
   }, []);
 
-  return state;
+  return {
+    user: firebaseUser,
+    firebaseUser,
+    userDoc,
+    loading,
+    setUserDoc,
+  };
 }

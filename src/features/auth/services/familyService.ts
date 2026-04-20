@@ -1,5 +1,6 @@
 import {
   doc,
+  getDoc,
   setDoc,
   updateDoc,
   collection,
@@ -9,7 +10,7 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { db } from '../../../core/api/firebase';
-import { Family } from '../../../types';
+import { Family, FamilyUser } from '../../../types';
 
 function generateInviteCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -47,4 +48,20 @@ export async function joinFamily(inviteCode: string, userId: string): Promise<Fa
   await updateDoc(doc(db, 'Users', userId), { familyId: family.id });
 
   return family;
+}
+
+export async function getFamily(familyId: string): Promise<Family | null> {
+  const snap = await getDoc(doc(db, 'Families', familyId));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Family;
+}
+
+export async function getFamilyMembers(familyId: string): Promise<FamilyUser[]> {
+  const q = query(collection(db, 'Users'), where('familyId', '==', familyId));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ uid: d.id, ...d.data() } as FamilyUser));
+}
+
+export async function updateUserName(userId: string, name: string): Promise<void> {
+  await updateDoc(doc(db, 'Users', userId), { name });
 }

@@ -9,7 +9,7 @@ export interface Family {
 }
 
 export interface FamilyUser {
-  id: string;
+  uid: string;
   familyId: string;
   name: string;
   email: string;

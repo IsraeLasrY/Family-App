@@ -5,12 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../src/core/theme/colors';
 import { useAuth } from '../../src/features/auth/hooks/useAuth';
-import { signOut } from '../../src/features/auth/services/authService';
 
 const FEATURES = [
   { icon: '📅', title: 'לוח שנה', subtitle: 'אירועים קרובים', color: '#EAE8FF', route: 'calendar' },
@@ -45,13 +43,6 @@ export default function HomeScreen() {
     month: 'long',
   });
 
-  function handleSignOut() {
-    Alert.alert('יציאה', 'האם להתנתק?', [
-      { text: 'ביטול', style: 'cancel' },
-      { text: 'התנתק', style: 'destructive', onPress: signOut },
-    ]);
-  }
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -59,13 +50,11 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <TouchableOpacity onPress={handleSignOut}>
-              <View style={styles.avatarLarge}>
-                <Text style={styles.avatarLargeText}>
-                  {userDoc?.name?.charAt(0) ?? '?'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.avatarLarge}>
+              <Text style={styles.avatarLargeText}>
+                {userDoc?.name?.charAt(0) ?? '?'}
+              </Text>
+            </View>
             <View style={styles.headerGreeting}>
               <Text style={styles.helloText}>שלום,</Text>
               <Text style={styles.nameText}>{userDoc?.name ?? 'אורח'} 👋</Text>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,26 +9,29 @@ import {
   Platform,
   TouchableOpacity,
   Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from '../../src/core/theme/colors';
-import { FamilyButton } from '../../src/core/theme/components/FamilyButton';
-import { signIn, getUserDoc } from '../../src/features/auth/services/authService';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Colors } from "../../src/core/theme/colors";
+import { FamilyButton } from "../../src/core/theme/components/FamilyButton";
+import {
+  signIn,
+  getUserDoc,
+} from "../../src/features/auth/services/authService";
 
-type Tab = 'welcome' | 'signin';
+type Tab = "welcome" | "signin";
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('welcome');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [tab, setTab] = useState<Tab>("welcome");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSignIn() {
     if (!email || !password) {
-      Alert.alert('שגיאה', 'נא למלא אימייל וסיסמה');
+      Alert.alert("שגיאה", "נא למלא אימייל וסיסמה");
       return;
     }
     setLoading(true);
@@ -36,18 +39,18 @@ export default function WelcomeScreen() {
       const user = await signIn(email, password);
       const userDoc = await getUserDoc(user.uid);
       if (userDoc?.familyId) {
-        router.replace('/(tabs)');
+        router.replace("/(tabs)");
       } else {
-        router.replace('/(auth)/create-family');
+        router.replace("/(auth)/create-family");
       }
     } catch {
-      Alert.alert('כניסה נכשלה', 'אימייל או סיסמה שגויים');
+      Alert.alert("כניסה נכשלה", "אימייל או סיסמה שגויים");
     } finally {
       setLoading(false);
     }
   }
 
-  if (tab === 'welcome') {
+  if (tab === "welcome") {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.inner}>
@@ -62,19 +65,22 @@ export default function WelcomeScreen() {
           <View style={styles.actions}>
             <FamilyButton
               title="צור משפחה חדשה"
-              onPress={() => router.push('/(auth)/create-family')}
+              onPress={() => router.push("/(auth)/create-family")}
             />
             <View style={styles.gap} />
             <FamilyButton
               title="הצטרף למשפחה קיימת"
               variant="outline"
-              onPress={() => router.push('/(auth)/join-family')}
+              onPress={() => router.push("/(auth)/join-family")}
             />
           </View>
 
-          <TouchableOpacity style={styles.signinLink} onPress={() => setTab('signin')}>
-            <Text style={styles.signinLinkText}>כבר יש לי חשבון — </Text>
+          <TouchableOpacity
+            style={styles.signinLink}
+            onPress={() => setTab("signin")}
+          >
             <Text style={styles.signinLinkBold}>כניסה</Text>
+            <Text style={styles.signinLinkText}> כבר יש לי חשבון-</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -83,10 +89,19 @@ export default function WelcomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
-        <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
-          <TouchableOpacity style={styles.back} onPress={() => setTab('welcome')}>
-            <Text style={styles.backText}>← חזרה</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.inner}
+          keyboardShouldPersistTaps="handled"
+        >
+          <TouchableOpacity
+            style={styles.back}
+            onPress={() => setTab("welcome")}
+          >
+            <Text style={styles.backText}>חזרה →</Text>
           </TouchableOpacity>
 
           <Text style={styles.title}>כניסה</Text>
@@ -116,13 +131,20 @@ export default function WelcomeScreen() {
                 secureTextEntry={!showPassword}
                 textAlign="right"
               />
-              <TouchableOpacity style={styles.eyeBtn} onPress={() => setShowPassword(v => !v)}>
-                <Text style={styles.eyeIcon}>{showPassword ? '🙈' : '👁️'}</Text>
+              <TouchableOpacity
+                style={styles.eyeBtn}
+                onPress={() => setShowPassword((v) => !v)}
+              >
+                <Text style={styles.eyeIcon}>{showPassword ? "🙈" : "👁️"}</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <FamilyButton title="כניסה" loading={loading} onPress={handleSignIn} />
+          <FamilyButton
+            title="כניסה"
+            loading={loading}
+            onPress={handleSignIn}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -137,41 +159,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingTop: 32,
     paddingBottom: 24,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
-  hero: { alignItems: 'center', marginBottom: 52 },
+  hero: { alignItems: "center", marginBottom: 52 },
   logoCircle: {
     width: 96,
     height: 96,
     borderRadius: 28,
     backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 20,
   },
   logoEmoji: { fontSize: 48 },
   title: {
     fontSize: 30,
-    fontWeight: '800',
+    fontWeight: "800",
     color: Colors.text,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
   },
-  subtitle: { fontSize: 15, color: Colors.textMuted, textAlign: 'center' },
+  subtitle: { fontSize: 15, color: Colors.textMuted, textAlign: "center" },
   actions: { marginBottom: 28 },
   gap: { height: 12 },
-  signinLink: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 12 },
+  signinLink: {
+    flexDirection: "row",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
   signinLinkText: { color: Colors.textMuted, fontSize: 14 },
-  signinLinkBold: { color: Colors.primary, fontSize: 14, fontWeight: '700' },
+  signinLinkBold: { color: Colors.primary, fontSize: 14, fontWeight: "700" },
   back: { marginBottom: 28 },
-  backText: { color: Colors.primary, fontSize: 15, fontWeight: '600' },
+  backText: { color: Colors.primary, fontSize: 15, fontWeight: "600" },
   form: { marginBottom: 28 },
   label: {
     color: Colors.text,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    textAlign: 'right',
+    textAlign: "right",
   },
   input: {
     backgroundColor: Colors.inputBg,
@@ -184,8 +210,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.inputBorder,
   },
-  inputWrapper: { position: 'relative', marginBottom: 16 },
+  inputWrapper: { position: "relative", marginBottom: 16 },
   inputWithIcon: { marginBottom: 0, paddingLeft: 44 },
-  eyeBtn: { position: 'absolute', left: 12, top: 14 },
+  eyeBtn: { position: "absolute", left: 12, top: 14 },
   eyeIcon: { fontSize: 20 },
 });

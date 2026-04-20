@@ -22,7 +22,7 @@ export async function registerUser(
     email,
     role,
     avatarUrl: '',
-  } satisfies Omit<FamilyUser, 'id'>);
+  } satisfies Omit<FamilyUser, 'uid'>);
 
   return user;
 }
@@ -39,5 +39,5 @@ export async function signOut(): Promise<void> {
 export async function getUserDoc(uid: string): Promise<FamilyUser | null> {
   const snap = await getDoc(doc(db, 'Users', uid));
   if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() } as FamilyUser;
+  return { uid: snap.id, ...snap.data() } as FamilyUser;
 }
