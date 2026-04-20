@@ -46,8 +46,10 @@ service cloud.firestore {
 
     // ─── Families ───────────────────────────────────────────────────
     match /Families/{familyId} {
-      // קריאה: רק בני המשפחה
-      allow read: if isFamilyMember(familyId);
+      // קבלת מסמך ספציפי: רק בני המשפחה
+      allow get: if isFamilyMember(familyId);
+      // שאילתה לפי קוד הזמנה: כל משתמש מחובר (נדרש להצטרפות)
+      allow list: if isAuth();
 
       // יצירה: כל משתמש מחובר יכול ליצור משפחה
       allow create: if isAuth() &&

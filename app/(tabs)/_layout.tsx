@@ -18,6 +18,13 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="calendar"
+        options={{
+          title: 'לוח שנה',
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: 'בית',
@@ -28,7 +35,7 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: 'פרופיל',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
+          tabBarButton: () => null,
         }}
       />
     </Tabs>

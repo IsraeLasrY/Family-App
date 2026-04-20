@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Colors } from '../../src/core/theme/colors';
 import { useAuth } from '../../src/features/auth/hooks/useAuth';
 
@@ -36,6 +37,11 @@ function MemberAvatar({ name }: { name: string }) {
 
 export default function HomeScreen() {
   const { userDoc } = useAuth();
+  const router = useRouter();
+
+  function handleFeaturePress(route: string) {
+    if (route === 'calendar') router.push('/(tabs)/calendar');
+  }
 
   const today = new Date().toLocaleDateString('he-IL', {
     weekday: 'long',
@@ -50,11 +56,11 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <View style={styles.avatarLarge}>
+            <TouchableOpacity style={styles.avatarLarge} onPress={() => router.push('/(tabs)/profile')}>
               <Text style={styles.avatarLargeText}>
                 {userDoc?.name?.charAt(0) ?? '?'}
               </Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.headerGreeting}>
               <Text style={styles.helloText}>שלום,</Text>
               <Text style={styles.nameText}>{userDoc?.name ?? 'אורח'} 👋</Text>
@@ -98,6 +104,7 @@ export default function HomeScreen() {
                 key={f.route}
                 style={[styles.featureCard, { backgroundColor: f.color }]}
                 activeOpacity={0.8}
+                onPress={() => handleFeaturePress(f.route)}
               >
                 <Text style={styles.featureIcon}>{f.icon}</Text>
                 <Text style={styles.featureTitle}>{f.title}</Text>
