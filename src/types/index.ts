@@ -44,6 +44,8 @@ export interface Task {
   status: 'todo' | 'in_progress' | 'done';
   points: number;
   dueDate: Timestamp;
+  isRecurring: boolean;
+  completedAt?: Timestamp | null;
 }
 
 export interface Transaction {
