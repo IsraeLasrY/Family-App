@@ -1,0 +1,124 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper functions ───────────────────────────────────────────
+
+    // האם המשתמש מחובר?
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // האם המשתמש מבקש את המסמך של עצמו?
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // האם המשתמש שייך למשפחה מסוימת?
+    function isFamilyMember(familyId) {
+      return isAuth() &&
+        get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.familyId == familyId;
+    }
+
+    // האם המשתמש הוא מנהל המשפחה?
+    function isFamilyAdmin(familyId) {
+      return isAuth() &&
+        get(/databases/$(database)/documents/Families/$(familyId)).data.adminId == request.auth.uid;
+    }
+
+    // ─── Users ──────────────────────────────────────────────────────
+    match /Users/{userId} {
+      // קריאה: רק המשתמש עצמו או בני משפחתו
+      allow read: if isOwner(userId) ||
+        isFamilyMember(resource.data.familyId);
+
+      // יצירה: רק המשתמש עצמו יוצר את המסמך שלו
+      allow create: if isOwner(userId);
+
+      // עדכון: רק המשתמש עצמו — לא יכול לשנות את ה-uid
+      allow update: if isOwner(userId) &&
+        request.resource.data.keys().hasAll(['familyId', 'name', 'email', 'role']);
+
+      // מחיקה: אסורה (מניעת אובדן נתונים בטעות)
+      allow delete: if false;
+    }
+
+    // ─── Families ───────────────────────────────────────────────────
+    match /Families/{familyId} {
+      // קריאה: רק בני המשפחה
+      allow read: if isFamilyMember(familyId);
+
+      // יצירה: כל משתמש מחובר יכול ליצור משפחה
+      allow create: if isAuth() &&
+        request.resource.data.adminId == request.auth.uid;
+
+      // עדכון: רק מנהל המשפחה
+      allow update: if isFamilyAdmin(familyId);
+
+      // מחיקה: רק מנהל המשפחה
+      allow delete: if isFamilyAdmin(familyId);
+    }
+
+    // ─── Events ─────────────────────────────────────────────────────
+    match /Events/{eventId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId);
+      allow update, delete: if isFamilyMember(resource.data.familyId) &&
+        resource.data.createdBy == request.auth.uid;
+    }
+
+    // ─── Shopping ───────────────────────────────────────────────────
+    match /Shopping/{itemId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId);
+      // כל בן משפחה יכול לסמן פריט כנקנה או למחוק
+      allow update, delete: if isFamilyMember(resource.data.familyId);
+    }
+
+    // ─── Tasks ──────────────────────────────────────────────────────
+    match /Tasks/{taskId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId);
+      allow update, delete: if isFamilyMember(resource.data.familyId);
+    }
+
+    // ─── Transactions ───────────────────────────────────────────────
+    match /Transactions/{txId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId);
+      // רק מי שיצר את העסקה יכול לערוך/למחוק
+      allow update, delete: if isFamilyMember(resource.data.familyId) &&
+        resource.data.addedBy == request.auth.uid;
+    }
+
+    // ─── Recipes ────────────────────────────────────────────────────
+    match /Recipes/{recipeId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId);
+      allow update, delete: if isFamilyMember(resource.data.familyId);
+    }
+
+    // ─── Schedules ──────────────────────────────────────────────────
+    match /Schedules/{scheduleId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      // רק הורה יכול ליצור לוח זמנים
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId) &&
+        get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.role == 'parent';
+      // רק הורה יכול לאשר/לערוך
+      allow update, delete: if isFamilyMember(resource.data.familyId) &&
+        get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.role == 'parent';
+    }
+
+    // ─── ברירת מחדל — חסום הכל ──────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

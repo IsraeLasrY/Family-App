@@ -16,6 +16,7 @@ import { Colors } from '../../src/core/theme/colors';
 import { FamilyButton } from '../../src/core/theme/components/FamilyButton';
 import { registerUser } from '../../src/features/auth/services/authService';
 import { createFamily } from '../../src/features/auth/services/familyService';
+import { validateEmail, validateName, validatePassword } from '../../src/core/utils/validation';
 
 export default function CreateFamilyScreen() {
   const router = useRouter();
@@ -31,10 +32,12 @@ export default function CreateFamilyScreen() {
       Alert.alert('שגיאה', 'נא למלא את כל השדות');
       return;
     }
-    if (password.length < 6) {
-      Alert.alert('שגיאה', 'הסיסמה חייבת להכיל לפחות 6 תווים');
-      return;
-    }
+    const nameCheck = validateName(name);
+    if (!nameCheck.valid) { Alert.alert('שגיאה', nameCheck.error); return; }
+    const emailCheck = validateEmail(email);
+    if (!emailCheck.valid) { Alert.alert('שגיאה', emailCheck.error); return; }
+    const passCheck = validatePassword(password);
+    if (!passCheck.valid) { Alert.alert('שגיאה', passCheck.error); return; }
     setLoading(true);
     try {
       const user = await registerUser(email, password, name, 'parent');
