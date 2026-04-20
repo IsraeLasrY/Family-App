@@ -116,10 +116,10 @@ export default function CalendarScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>לוח שנה</Text>
         <TouchableOpacity style={styles.addBtn} onPress={openModal}>
           <Text style={styles.addBtnText}>+ הוסף</Text>
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>לוח שנה</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>

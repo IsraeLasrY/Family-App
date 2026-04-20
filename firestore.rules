@@ -98,6 +98,14 @@ service cloud.firestore {
         resource.data.addedBy == request.auth.uid;
     }
 
+    // ─── BudgetLimits ───────────────────────────────────────────────
+    match /BudgetLimits/{limitId} {
+      allow read: if isFamilyMember(resource.data.familyId);
+      allow create: if isAuth() &&
+        isFamilyMember(request.resource.data.familyId);
+      allow update, delete: if isFamilyMember(resource.data.familyId);
+    }
+
     // ─── Recipes ────────────────────────────────────────────────────
     match /Recipes/{recipeId} {
       allow read: if isFamilyMember(resource.data.familyId);

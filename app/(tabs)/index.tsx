@@ -43,6 +43,7 @@ export default function HomeScreen() {
     if (route === 'calendar') router.push('/(tabs)/calendar');
     if (route === 'shopping') router.push('/(tabs)/shopping');
     if (route === 'tasks') router.push('/(tabs)/tasks');
+    if (route === 'budget') router.push('/(tabs)/budget');
   }
 
   const today = new Date().toLocaleDateString('he-IL', {

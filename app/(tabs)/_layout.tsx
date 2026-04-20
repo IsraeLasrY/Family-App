@@ -18,6 +18,13 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="budget"
+        options={{
+          title: 'תקציב',
+          tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="tasks"
         options={{
           title: 'משימות',

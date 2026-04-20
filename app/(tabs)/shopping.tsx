@@ -76,10 +76,10 @@ export default function ShoppingScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>רשימת קניות</Text>
         <TouchableOpacity style={styles.addBtn} onPress={openModal}>
           <Text style={styles.addBtnText}>+ הוסף</Text>
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>רשימת קניות</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>

@@ -59,6 +59,13 @@ export interface Transaction {
   addedBy: string;
 }
 
+export interface BudgetLimit {
+  id: string;
+  familyId: string;
+  category: string;
+  monthlyLimit: number;
+}
+
 export interface Recipe {
   id: string;
   familyId: string;
