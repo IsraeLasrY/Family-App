@@ -59,6 +59,13 @@ export default function TabsLayout() {
           tabBarButton: () => null,
         }}
       />
+      <Tabs.Screen
+        name="recipes"
+        options={{
+          title: 'מתכונים',
+          tabBarButton: () => null,
+        }}
+      />
     </Tabs>
   );
 }

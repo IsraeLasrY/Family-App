@@ -16,6 +16,7 @@ const FEATURES = [
   { icon: '🛒', title: 'קניות',   subtitle: 'רשימת קניות',    color: '#FFF3E0', route: 'shopping' },
   { icon: '💰', title: 'תקציב',   subtitle: 'מעקב הוצאות',   color: '#E8F5E9', route: 'budget' },
   { icon: '✅', title: 'מטלות',   subtitle: 'משימות המשפחה',  color: '#FCE4EC', route: 'tasks' },
+  { icon: '🍳', title: 'מתכונים', subtitle: 'מתכונים + AI',   color: '#FFF8E1', route: 'recipes' },
 ];
 
 function MemberAvatar({ name }: { name: string }) {
@@ -44,6 +45,7 @@ export default function HomeScreen() {
     if (route === 'shopping') router.push('/(tabs)/shopping');
     if (route === 'tasks') router.push('/(tabs)/tasks');
     if (route === 'budget') router.push('/(tabs)/budget');
+    if (route === 'recipes') router.push('/(tabs)/recipes');
   }
 
   const today = new Date().toLocaleDateString('he-IL', {
@@ -194,6 +196,7 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'space-between',
   },
+  featureCardFull: { width: '100%' },
   featureIcon: { fontSize: 36, marginBottom: 8 },
   featureTitle: { fontSize: 16, fontWeight: '800', color: Colors.text },
   featureSubtitle: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
