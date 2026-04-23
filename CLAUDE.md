@@ -15,13 +15,14 @@ All UI text is Hebrew. Headers and content always align to the **right**.
 ```
 app/
   (tabs)/
-    index.tsx       — Home screen with feature grid
-    calendar.tsx    — Events
+    index.tsx       — Home screen with feature grid + upcoming events + real-time stats
+    calendar.tsx    — Events (add + edit + delete)
     shopping.tsx    — Shopping list
     tasks.tsx       — Family tasks
     budget.tsx      — Budget tracker
-    recipes.tsx     — Recipes + AI
-    profile.tsx     — User profile (hidden tab)
+    recipes.tsx     — Recipes + AI (hidden tab, nav from home)
+    schedule.tsx    — Weekly schedule (hidden tab, nav from home)
+    profile.tsx     — User profile (hidden tab, nav from avatar)
     _layout.tsx     — Tab bar config
   (auth)/           — Login, register, onboarding screens
 src/
@@ -33,6 +34,7 @@ src/
     tasks/services/taskService.ts
     budget/services/budgetService.ts
     recipes/services/recipeService.ts
+    schedule/services/scheduleService.ts
   types/index.ts    — All shared interfaces
   core/
     api/firebase.ts
@@ -42,25 +44,28 @@ firestore.indexes.json
 ```
 
 ## Firestore Collections
-| Collection    | Key fields                              |
-|---------------|-----------------------------------------|
-| Families      | name, inviteCode, adminId               |
-| Users         | familyId, name, role (parent/child)     |
-| Events        | familyId, title, date, category         |
-| Shopping      | familyId, name, isBought, quantity      |
-| Tasks         | familyId, title, assignedTo, isRecurring|
-| Transactions  | familyId, amount, type, category, date  |
-| BudgetLimits  | familyId, category, monthlyLimit        |
-| Recipes       | familyId, title, ingredients, source    |
+| Collection    | Key fields                                        |
+|---------------|---------------------------------------------------|
+| Families      | name, inviteCode, adminId                         |
+| Users         | familyId, name, role (parent/child)               |
+| Events        | familyId, title, date, category, createdBy        |
+| Shopping      | familyId, name, isBought, quantity                |
+| Tasks         | familyId, title, assignedTo, isRecurring, status  |
+| Transactions  | familyId, amount, type, category, date            |
+| BudgetLimits  | familyId, category, monthlyLimit                  |
+| Recipes       | familyId, title, ingredients, source              |
+| Schedules     | familyId, userId, activityType, startTime, endTime, repeat, isApproved |
 
 ## Key Decisions & Conventions
 - **AI via direct fetch** — not `@anthropic-ai/sdk` (has Node.js deps incompatible with RN)
 - **API key access:** `(globalThis as any).process?.env?.EXPO_PUBLIC_ANTHROPIC_API_KEY ?? ''`
 - **AI model:** `claude-haiku-4-5-20251001`
-- **Hidden tabs:** `tabBarButton: () => null` in `_layout.tsx`
+- **Hidden tabs:** `href: null` in `_layout.tsx` (NOT `tabBarButton: () => null` — that still takes space)
+- **Tab bar:** 5 visible tabs with `tabBarItemStyle: { flex: 1 }` per tab + `href: null` hidden tabs get no itemStyle
 - **Role-based UI:** parents can add/delete, children can only view/complete
 - **Recurring tasks:** max 10 per family
 - **RTL:** all headers have title on RIGHT, action buttons on LEFT
+- **Date filter on home:** compare by day (setHours 0,0,0,0) not by exact time
 - **.md files stay local only** — never commit docs/*.md or planning files to git
 
 ## Phases Completed
@@ -72,15 +77,20 @@ firestore.indexes.json
 | 5     | Budget tracker + category limits + overspend alerts |
 | 6     | Budget limits modal (parents only) |
 | 7     | Recipes — manual add + AI suggestions + send to shopping list |
+| 8     | Weekly schedule — day selector, 5 activity types, repeat modes, parent-only |
+
+## Extra features added alongside phases
+- Calendar: edit existing events (✏️ opens pre-filled modal, calls `updateEvent`)
+- Home: real-time stats (events this week / unbought items / pending tasks)
+- Home: upcoming events section (today + 7 days, day-based filter)
+- Profile: remove family member (admin only, calls `removeFamilyMember`)
 
 ## Current State (as of 2026-04-23)
-- Branch `feature/phase-4-shopping` — all phases 1–7 committed
-- **Known issue:** Tab bar items crowd to left side — needs layout fix
-- Next phase: **Phase 8 — Weekly Schedule** (לוחות זמנים לילדים)
+- Branch `master` — all phases 1–8 committed and merged
+- Next phase: **Phase 9 — Push Notifications**
 
 ## Upcoming Phases
-- Phase 8: Weekly Schedule (children's time schedules, parent approval)
-- Phase 9: Push Notifications
+- Phase 9: Push Notifications (Expo Notifications)
 - Phase 10–12: Polish, QA, Release
 
 ## Firestore Indexes (all deployed)
@@ -90,6 +100,7 @@ firestore.indexes.json
 - Transactions: familyId ASC + date DESC
 - Recipes: familyId ASC + createdAt DESC
 - BudgetLimits: familyId ASC + category ASC
+- Schedules: familyId ASC + startTime ASC
 
 ## Environment Variables
 ```
