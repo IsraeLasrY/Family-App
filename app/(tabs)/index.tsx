@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -13,7 +14,8 @@ import { useAuth } from '../../src/features/auth/hooks/useAuth';
 import { subscribeToEvents } from '../../src/features/calendar/services/eventService';
 import { subscribeToShoppingItems } from '../../src/features/shopping/services/shoppingService';
 import { subscribeToTasks } from '../../src/features/tasks/services/taskService';
-import { Event } from '../../src/types';
+import { getFamilyMembers } from '../../src/features/auth/services/familyService';
+import { Event, FamilyUser } from '../../src/types';
 
 const FEATURES = [
   { icon: '📅', title: 'לוח שנה',    subtitle: 'אירועים קרובים',  color: '#EAE8FF', route: 'calendar' },
@@ -24,16 +26,15 @@ const FEATURES = [
   { icon: '⏰', title: 'לוח זמנים',  subtitle: 'זמני הילדים',    color: '#E0F7FA', route: 'schedule' },
 ];
 
-function MemberAvatar({ name }: { name: string }) {
-  const initials = name
-    .split(' ')
-    .map(w => w[0])
-    .slice(0, 2)
-    .join('');
+const AVATAR_COLORS = ['#FF8A80', '#82B1FF', '#CCFF90', '#FFD180', '#EA80FC'];
 
-  const colors = ['#FF8A80', '#82B1FF', '#CCFF90', '#FFD180', '#EA80FC'];
-  const color = colors[name.charCodeAt(0) % colors.length];
+function MemberAvatar({ member }: { member: FamilyUser }) {
+  const color = AVATAR_COLORS[member.name.charCodeAt(0) % AVATAR_COLORS.length];
+  const initials = member.name.split(' ').map(w => w[0]).slice(0, 2).join('');
 
+  if (member.avatarUrl) {
+    return <Image source={{ uri: member.avatarUrl }} style={styles.avatar} />;
+  }
   return (
     <View style={[styles.avatar, { backgroundColor: color }]}>
       <Text style={styles.avatarText}>{initials}</Text>
@@ -51,16 +52,22 @@ export default function HomeScreen() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [pendingItemsCount, setPendingItemsCount] = useState(0);
   const [pendingTasksCount, setPendingTasksCount] = useState(0);
+  const [members, setMembers] = useState<FamilyUser[]>([]);
 
   useEffect(() => {
     if (!userDoc?.familyId) return;
-    const now = new Date();
-    const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    getFamilyMembers(userDoc.familyId).then(setMembers);
 
     const unsubEvents = subscribeToEvents(userDoc.familyId, (all) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const weekAhead = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
       const filtered = all.filter((e) => {
         const d = e.date?.toDate ? e.date.toDate() : new Date(e.date as any);
-        return d >= now && d <= weekAhead;
+        const eventDay = new Date(d);
+        eventDay.setHours(0, 0, 0, 0);
+        return eventDay >= today && eventDay <= weekAhead;
       });
       setUpcomingEvents(filtered.slice(0, 3));
     });
@@ -98,26 +105,24 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <TouchableOpacity style={styles.avatarLarge} onPress={() => router.push('/(tabs)/profile')}>
-              <Text style={styles.avatarLargeText}>
-                {userDoc?.name?.charAt(0) ?? '?'}
-              </Text>
-            </TouchableOpacity>
             <View style={styles.headerGreeting}>
               <Text style={styles.helloText}>שלום,</Text>
-              <Text style={styles.nameText}>{userDoc?.name ?? 'אורח'} 👋</Text>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
+                <Text style={styles.nameText}>{userDoc?.name ?? 'אורח'} 👋</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
           <Text style={styles.familyName}>{userDoc?.familyId ? 'המשפחה שלנו' : ''}</Text>
 
           {/* Member avatars */}
-          <View style={styles.membersRow}>
-            {userDoc?.name && <MemberAvatar name={userDoc.name} />}
-            <View style={[styles.avatar, styles.avatarAdd]}>
-              <Text style={styles.avatarAddText}>+</Text>
+          {members.length > 0 && (
+            <View style={styles.membersRow}>
+              {members.map(m => (
+                <MemberAvatar key={m.uid} member={m} />
+              ))}
             </View>
-          </View>
+          )}
 
           {/* Stats */}
           <View style={styles.statsRow}>
@@ -186,7 +191,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
 
-  // Header
   header: {
     backgroundColor: Colors.headerBg,
     paddingHorizontal: 24,
@@ -197,7 +201,7 @@ const styles = StyleSheet.create({
   },
   headerTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 16,
   },
@@ -206,7 +210,6 @@ const styles = StyleSheet.create({
   nameText: { fontSize: 22, fontWeight: '800', color: Colors.textOnDark },
   familyName: { fontSize: 18, fontWeight: '700', color: Colors.textOnDark, textAlign: 'right', marginBottom: 16 },
 
-  // Avatars
   membersRow: { flexDirection: 'row-reverse', marginBottom: 24, gap: 8 },
   avatar: {
     width: 44,
@@ -216,19 +219,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: 15, fontWeight: '700', color: Colors.text },
-  avatarAdd: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  avatarAddText: { fontSize: 22, color: Colors.textOnDark, fontWeight: '300' },
-  avatarLarge: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarLargeText: { fontSize: 20, fontWeight: '700', color: Colors.textOnDark },
 
-  // Stats
   statsRow: { flexDirection: 'row', gap: 10 },
   statCard: {
     flex: 1,
@@ -240,11 +231,9 @@ const styles = StyleSheet.create({
   statNum: { fontSize: 22, fontWeight: '800', color: Colors.textOnDark },
   statLabel: { fontSize: 11, color: Colors.textOnDarkMuted, marginTop: 2 },
 
-  // Body
   body: { paddingHorizontal: 24, paddingTop: 28, paddingBottom: 32 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: Colors.text, textAlign: 'right', marginBottom: 16 },
 
-  // Grid
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   featureCard: {
     width: '47.5%',
@@ -253,15 +242,12 @@ const styles = StyleSheet.create({
     minHeight: 120,
     justifyContent: 'space-between',
   },
-  featureCardFull: { width: '100%' },
   featureIcon: { fontSize: 36, marginBottom: 8 },
   featureTitle: { fontSize: 16, fontWeight: '800', color: Colors.text },
   featureSubtitle: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
 
-  // Date
   dateText: { fontSize: 13, color: Colors.textMuted, textAlign: 'right', marginTop: 24 },
 
-  // Upcoming events
   upcomingSection: { paddingHorizontal: 24, paddingTop: 24 },
   upcomingCard: { backgroundColor: Colors.white, borderRadius: 16, padding: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: Colors.cardBorder },
   upcomingIcon: { fontSize: 24 },

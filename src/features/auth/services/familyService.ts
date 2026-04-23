@@ -9,7 +9,8 @@ import {
   getDocs,
   serverTimestamp,
 } from 'firebase/firestore';
-import { db } from '../../../core/api/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../../../core/api/firebase';
 import { Family, FamilyUser } from '../../../types';
 
 function generateInviteCode(): string {
@@ -68,4 +69,21 @@ export async function updateUserName(userId: string, name: string): Promise<void
 
 export async function removeFamilyMember(memberId: string): Promise<void> {
   await updateDoc(doc(db, 'Users', memberId), { familyId: null });
+}
+
+export async function updateUserAvatar(userId: string, imageUri: string): Promise<string> {
+  // fetch() doesn't work with file:// URIs in React Native — use XMLHttpRequest instead
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => resolve(xhr.response);
+    xhr.onerror = () => reject(new Error('Failed to read image'));
+    xhr.responseType = 'blob';
+    xhr.open('GET', imageUri, true);
+    xhr.send(null);
+  });
+  const storageRef = ref(storage, `avatars/${userId}`);
+  await uploadBytes(storageRef, blob);
+  const url = await getDownloadURL(storageRef);
+  await updateDoc(doc(db, 'Users', userId), { avatarUrl: url });
+  return url;
 }

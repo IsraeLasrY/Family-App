@@ -64,7 +64,19 @@ export default function WelcomeScreen() {
 
           <View style={styles.actions}>
             <FamilyButton
+              title="כניסה לחשבון קיים"
+              onPress={() => setTab("signin")}
+            />
+            <View style={styles.gap} />
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>חדש כאן?</Text>
+              <View style={styles.dividerLine} />
+            </View>
+            <View style={styles.gap} />
+            <FamilyButton
               title="צור משפחה חדשה"
+              variant="outline"
               onPress={() => router.push("/(auth)/create-family")}
             />
             <View style={styles.gap} />
@@ -74,14 +86,6 @@ export default function WelcomeScreen() {
               onPress={() => router.push("/(auth)/join-family")}
             />
           </View>
-
-          <TouchableOpacity
-            style={styles.signinLink}
-            onPress={() => setTab("signin")}
-          >
-            <Text style={styles.signinLinkBold}>כניסה</Text>
-            <Text style={styles.signinLinkText}> כבר יש לי חשבון-</Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -182,13 +186,9 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 15, color: Colors.textMuted, textAlign: "center" },
   actions: { marginBottom: 28 },
   gap: { height: 12 },
-  signinLink: {
-    flexDirection: "row",
-    justifyContent: "center",
-    paddingVertical: 12,
-  },
-  signinLinkText: { color: Colors.textMuted, fontSize: 14 },
-  signinLinkBold: { color: Colors.primary, fontSize: 14, fontWeight: "700" },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.cardBorder },
+  dividerText: { fontSize: 13, color: Colors.textMuted, fontWeight: '600' },
   back: { marginBottom: 28 },
   backText: { color: Colors.primary, fontSize: 15, fontWeight: "600" },
   form: { marginBottom: 28 },
