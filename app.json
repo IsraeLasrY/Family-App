@@ -36,6 +36,13 @@
           "color": "#ffffff"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5634a505-a1cf-4c0e-b59c-b3bc521a8433"
+      }
+    },
+    "owner": "israelasrys-organization"
   }
 }
