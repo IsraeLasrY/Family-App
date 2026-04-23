@@ -15,6 +15,7 @@ export interface FamilyUser {
   email: string;
   role: 'parent' | 'child';
   avatarUrl?: string;
+  pushToken?: string;
 }
 
 export interface Event {

@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../../core/api/firebase';
 import { Event } from '../../../types';
+import { notifyFamilyMembers } from '../../notifications/services/notificationService';
 
 export function subscribeToEvents(
   familyId: string,
@@ -45,6 +46,7 @@ export async function addEvent(
     category,
     createdAt: serverTimestamp(),
   });
+  notifyFamilyMembers(familyId, 'אירוע חדש 📅', title, createdBy);
 }
 
 export async function updateEvent(

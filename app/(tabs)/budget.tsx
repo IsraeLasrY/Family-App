@@ -21,6 +21,7 @@ import {
   deleteTransaction,
   setBudgetLimit,
 } from '../../src/features/budget/services/budgetService';
+import { notifyParents } from '../../src/features/notifications/services/notificationService';
 import { Transaction, BudgetLimit } from '../../src/types';
 
 const CATEGORIES = [
@@ -130,6 +131,11 @@ export default function BudgetScreen() {
             );
           });
           if (!shouldContinue) return;
+          notifyParents(
+            userDoc!.familyId,
+            'חריגה מהתקציב ⚠️',
+            `₪${formatAmount(over)} מעל המגבלה ב${getCategoryMeta(category).label}`
+          );
         }
       }
     }

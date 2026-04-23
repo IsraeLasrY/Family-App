@@ -14,6 +14,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../../core/api/firebase';
 import { Task } from '../../../types';
+import { notifyUser } from '../../notifications/services/notificationService';
 
 export function subscribeToTasks(
   familyId: string,
@@ -50,6 +51,7 @@ export async function addTask(
     completedAt: null,
     createdAt: serverTimestamp(),
   });
+  notifyUser(assignedTo, 'משימה חדשה 📋', title);
 }
 
 export async function updateTaskStatus(

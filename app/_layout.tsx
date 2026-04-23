@@ -3,11 +3,18 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '../src/features/auth/hooks/useAuth';
 import { Colors } from '../src/core/theme/colors';
+import { registerForPushNotifications } from '../src/features/notifications/services/notificationService';
 
 function InitialLayout() {
   const { firebaseUser, userDoc, loading } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+
+  useEffect(() => {
+    if (firebaseUser && userDoc?.familyId) {
+      registerForPushNotifications(firebaseUser.uid);
+    }
+  }, [firebaseUser?.uid, userDoc?.familyId]);
 
   useEffect(() => {
     if (loading) return;
