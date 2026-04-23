@@ -125,7 +125,7 @@ export default function RecipesScreen() {
     try {
       await Promise.all(
         recipe.ingredients.map((ing) =>
-          addShoppingItem(userDoc!.familyId, ing, 1, user!.uid)
+          addShoppingItem(userDoc!.familyId, user!.uid, ing, 1)
         )
       );
       Alert.alert('נשלח!', 'המצרכים נוספו לרשימת הקניות.');

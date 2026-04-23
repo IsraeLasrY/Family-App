@@ -18,6 +18,7 @@ import {
   getFamily,
   getFamilyMembers,
   updateUserName,
+  removeFamilyMember,
 } from '../../src/features/auth/services/familyService';
 import { Family, FamilyUser } from '../../src/types';
 
@@ -28,11 +29,21 @@ const ROLE_LABEL: Record<string, string> = {
 
 const AVATAR_COLORS = ['#FF8A80', '#82B1FF', '#CCFF90', '#FFD180', '#EA80FC'];
 
-function MemberRow({ member, isMe }: { member: FamilyUser; isMe: boolean }) {
+function MemberRow({ member, isMe, canRemove, onRemove }: {
+  member: FamilyUser;
+  isMe: boolean;
+  canRemove: boolean;
+  onRemove: () => void;
+}) {
   const color = AVATAR_COLORS[member.name.charCodeAt(0) % AVATAR_COLORS.length];
   const initials = member.name.split(' ').map(w => w[0]).slice(0, 2).join('');
   return (
     <View style={styles.memberRow}>
+      {canRemove && (
+        <TouchableOpacity style={styles.removeBtn} onPress={onRemove}>
+          <Text style={styles.removeBtnText}>הסר</Text>
+        </TouchableOpacity>
+      )}
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{member.name} {isMe ? '(אני)' : ''}</Text>
         <Text style={styles.memberRole}>{ROLE_LABEL[member.role] ?? member.role}</Text>
@@ -89,6 +100,18 @@ export default function ProfileScreen() {
     if (!family?.inviteCode) return;
     Clipboard.setString(family.inviteCode);
     Alert.alert('הועתק!', `קוד ההזמנה ${family.inviteCode} הועתק ללוח`);
+  }
+
+  function handleRemoveMember(member: FamilyUser) {
+    Alert.alert('הסרת חבר', `להסיר את ${member.name} מהמשפחה?`, [
+      { text: 'ביטול', style: 'cancel' },
+      {
+        text: 'הסר', style: 'destructive', onPress: async () => {
+          await removeFamilyMember(member.uid);
+          setMembers(prev => prev.filter(m => m.uid !== member.uid));
+        }
+      },
+    ]);
   }
 
   function handleSignOut() {
@@ -174,7 +197,13 @@ export default function ProfileScreen() {
               {/* חברי המשפחה */}
               <Text style={styles.membersTitle}>חברי המשפחה ({members.length})</Text>
               {members.map(m => (
-                <MemberRow key={m.uid} member={m} isMe={m.uid === user?.uid} />
+                <MemberRow
+                  key={m.uid}
+                  member={m}
+                  isMe={m.uid === user?.uid}
+                  canRemove={family?.adminId === user?.uid && m.uid !== user?.uid}
+                  onRemove={() => handleRemoveMember(m)}
+                />
               ))}
             </>
           )}
@@ -237,7 +266,9 @@ const styles = StyleSheet.create({
 
   // Members
   membersTitle: { fontSize: 13, fontWeight: '700', color: Colors.text, textAlign: 'right', marginBottom: 12 },
-  memberRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: Colors.cardBorder },
+  memberRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10, borderTopWidth: 1, borderTopColor: Colors.cardBorder, gap: 8 },
+  removeBtn: { backgroundColor: '#FFEBEE', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
+  removeBtnText: { color: '#FF5252', fontWeight: '700', fontSize: 12 },
   memberInfo: { alignItems: 'flex-end' },
   memberName: { fontSize: 14, fontWeight: '700', color: Colors.text },
   memberRole: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },

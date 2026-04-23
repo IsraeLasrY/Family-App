@@ -1,6 +1,6 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/core/theme/colors';
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "../../src/core/theme/colors";
 
 export default function TabsLayout() {
   return (
@@ -10,8 +10,16 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: Colors.white,
           borderTopColor: Colors.cardBorder,
-          height: 60,
-          paddingBottom: 8,
+          height: 68,
+          paddingBottom: 10,
+          paddingTop: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: "600",
+        },
+        tabBarIconStyle: {
+          marginBottom: -2,
         },
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textMuted,
@@ -20,50 +28,72 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="budget"
         options={{
-          title: 'תקציב',
-          tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
+          title: "תקציב",
+          tabBarItemStyle: { flex: 1 },
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="wallet" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="tasks"
         options={{
-          title: 'משימות',
-          tabBarIcon: ({ color, size }) => <Ionicons name="checkmark-circle" size={size} color={color} />,
+          title: "משימות",
+          tabBarItemStyle: { flex: 1 },
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="checkmark-circle" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="shopping"
         options={{
-          title: 'קניות',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cart" size={size} color={color} />,
+          title: "קניות",
+          tabBarItemStyle: { flex: 1 },
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: 'לוח שנה',
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          title: "יומן",
+          tabBarItemStyle: { flex: 1 },
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: 'בית',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+          title: "בית",
+          tabBarItemStyle: { flex: 1 },
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          title: 'לו"ז',
+          href: null,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'פרופיל',
-          tabBarButton: () => null,
+          title: "פרופיל",
+          href: null,
         }}
       />
       <Tabs.Screen
         name="recipes"
         options={{
-          title: 'מתכונים',
-          tabBarButton: () => null,
+          title: "מתכונים",
+          href: null,
         }}
       />
     </Tabs>

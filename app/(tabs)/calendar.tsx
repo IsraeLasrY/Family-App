@@ -19,6 +19,7 @@ import { useAuth } from '../../src/features/auth/hooks/useAuth';
 import {
   subscribeToEvents,
   addEvent,
+  updateEvent,
   deleteEvent,
 } from '../../src/features/calendar/services/eventService';
 import { Event } from '../../src/types';
@@ -46,7 +47,8 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Add event form state
+  // Add/edit event form state
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -80,23 +82,37 @@ export default function CalendarScreen() {
 
   const selectedEvents = events.filter((e) => toDateString(e.date) === selectedDate);
 
-  function openModal() {
-    const d = new Date();
-    setTitle('');
-    setDate(d);
-    setTempDate(d);
-    setCategory('general');
+  function openModal(event?: Event) {
+    if (event) {
+      const d = event.date?.toDate ? event.date.toDate() : new Date(event.date as any);
+      setEditingEvent(event);
+      setTitle(event.title);
+      setDate(d);
+      setTempDate(d);
+      setCategory(event.category);
+    } else {
+      const d = new Date();
+      setEditingEvent(null);
+      setTitle('');
+      setDate(d);
+      setTempDate(d);
+      setCategory('general');
+    }
     setModalVisible(true);
   }
 
-  async function handleAdd() {
+  async function handleSave() {
     if (!title.trim()) {
       Alert.alert('שגיאה', 'נא להזין כותרת');
       return;
     }
     setSaving(true);
     try {
-      await addEvent(userDoc!.familyId, user!.uid, title.trim(), date, category);
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, title.trim(), date, category);
+      } else {
+        await addEvent(userDoc!.familyId, user!.uid, title.trim(), date, category);
+      }
       setModalVisible(false);
     } catch {
       Alert.alert('שגיאה', 'לא ניתן לשמור את האירוע. נסה שוב.');
@@ -116,7 +132,7 @@ export default function CalendarScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.addBtn} onPress={openModal}>
+        <TouchableOpacity style={styles.addBtn} onPress={() => openModal()}>
           <Text style={styles.addBtnText}>+ הוסף</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>לוח שנה</Text>
@@ -164,9 +180,14 @@ export default function CalendarScreen() {
                     </View>
                   </View>
                   {e.createdBy === user?.uid && (
-                    <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(e)}>
-                      <Text style={styles.deleteBtnText}>✕</Text>
-                    </TouchableOpacity>
+                    <View style={styles.eventActions}>
+                      <TouchableOpacity style={styles.editBtn} onPress={() => openModal(e)}>
+                        <Text style={styles.editBtnText}>✏️</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(e)}>
+                        <Text style={styles.deleteBtnText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
                   )}
                 </View>
               );
@@ -179,7 +200,7 @@ export default function CalendarScreen() {
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>אירוע חדש</Text>
+            <Text style={styles.modalTitle}>{editingEvent ? 'עריכת אירוע' : 'אירוע חדש'}</Text>
 
             <Text style={styles.fieldLabel}>כותרת</Text>
             <TextInput
@@ -260,7 +281,7 @@ export default function CalendarScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.saveBtn, saving && { opacity: 0.6 }]}
-                onPress={handleAdd}
+                onPress={handleSave}
                 disabled={saving}
               >
                 <Text style={styles.saveBtnText}>{saving ? 'שומר...' : 'שמור'}</Text>
@@ -298,6 +319,9 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
   categoryBadge: { backgroundColor: 'rgba(0,0,0,0.07)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginTop: 6, alignSelf: 'flex-start' },
   categoryText: { fontSize: 11, fontWeight: '600', color: Colors.text },
+  eventActions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
+  editBtn: { padding: 6 },
+  editBtnText: { fontSize: 15 },
   deleteBtn: { padding: 6 },
   deleteBtnText: { fontSize: 16, color: '#FF5252' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },

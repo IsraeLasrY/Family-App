@@ -6,6 +6,7 @@ import {
   onSnapshot,
   addDoc,
   deleteDoc,
+  updateDoc,
   doc,
   serverTimestamp,
   Unsubscribe,
@@ -44,6 +45,15 @@ export async function addEvent(
     category,
     createdAt: serverTimestamp(),
   });
+}
+
+export async function updateEvent(
+  eventId: string,
+  title: string,
+  date: Date,
+  category: Event['category']
+): Promise<void> {
+  await updateDoc(doc(db, 'Events', eventId), { title, date, category });
 }
 
 export async function deleteEvent(eventId: string): Promise<void> {

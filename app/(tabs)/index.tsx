@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,13 +10,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../src/core/theme/colors';
 import { useAuth } from '../../src/features/auth/hooks/useAuth';
+import { subscribeToEvents } from '../../src/features/calendar/services/eventService';
+import { subscribeToShoppingItems } from '../../src/features/shopping/services/shoppingService';
+import { subscribeToTasks } from '../../src/features/tasks/services/taskService';
+import { Event } from '../../src/types';
 
 const FEATURES = [
-  { icon: '📅', title: 'לוח שנה', subtitle: 'אירועים קרובים', color: '#EAE8FF', route: 'calendar' },
-  { icon: '🛒', title: 'קניות',   subtitle: 'רשימת קניות',    color: '#FFF3E0', route: 'shopping' },
-  { icon: '💰', title: 'תקציב',   subtitle: 'מעקב הוצאות',   color: '#E8F5E9', route: 'budget' },
-  { icon: '✅', title: 'מטלות',   subtitle: 'משימות המשפחה',  color: '#FCE4EC', route: 'tasks' },
-  { icon: '🍳', title: 'מתכונים', subtitle: 'מתכונים + AI',   color: '#FFF8E1', route: 'recipes' },
+  { icon: '📅', title: 'לוח שנה',    subtitle: 'אירועים קרובים',  color: '#EAE8FF', route: 'calendar' },
+  { icon: '🛒', title: 'קניות',      subtitle: 'רשימת קניות',     color: '#FFF3E0', route: 'shopping' },
+  { icon: '💰', title: 'תקציב',      subtitle: 'מעקב הוצאות',    color: '#E8F5E9', route: 'budget' },
+  { icon: '✅', title: 'מטלות',      subtitle: 'משימות המשפחה',   color: '#FCE4EC', route: 'tasks' },
+  { icon: '🍳', title: 'מתכונים',    subtitle: 'מתכונים + AI',    color: '#FFF8E1', route: 'recipes' },
+  { icon: '⏰', title: 'לוח זמנים',  subtitle: 'זמני הילדים',    color: '#E0F7FA', route: 'schedule' },
 ];
 
 function MemberAvatar({ name }: { name: string }) {
@@ -36,9 +41,40 @@ function MemberAvatar({ name }: { name: string }) {
   );
 }
 
+const CATEGORY_ICONS: Record<string, string> = {
+  general: '📌', medical: '🏥', school: '🎒', celebration: '🎉',
+};
+
 export default function HomeScreen() {
   const { userDoc } = useAuth();
   const router = useRouter();
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [pendingItemsCount, setPendingItemsCount] = useState(0);
+  const [pendingTasksCount, setPendingTasksCount] = useState(0);
+
+  useEffect(() => {
+    if (!userDoc?.familyId) return;
+    const now = new Date();
+    const weekAhead = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const unsubEvents = subscribeToEvents(userDoc.familyId, (all) => {
+      const filtered = all.filter((e) => {
+        const d = e.date?.toDate ? e.date.toDate() : new Date(e.date as any);
+        return d >= now && d <= weekAhead;
+      });
+      setUpcomingEvents(filtered.slice(0, 3));
+    });
+
+    const unsubShopping = subscribeToShoppingItems(userDoc.familyId, (items) => {
+      setPendingItemsCount(items.filter((i) => !i.isBought).length);
+    });
+
+    const unsubTasks = subscribeToTasks(userDoc.familyId, (tasks) => {
+      setPendingTasksCount(tasks.filter((t) => t.status !== 'done').length);
+    });
+
+    return () => { unsubEvents(); unsubShopping(); unsubTasks(); };
+  }, [userDoc?.familyId]);
 
   function handleFeaturePress(route: string) {
     if (route === 'calendar') router.push('/(tabs)/calendar');
@@ -46,6 +82,7 @@ export default function HomeScreen() {
     if (route === 'tasks') router.push('/(tabs)/tasks');
     if (route === 'budget') router.push('/(tabs)/budget');
     if (route === 'recipes') router.push('/(tabs)/recipes');
+    if (route === 'schedule') router.push('/(tabs)/schedule');
   }
 
   const today = new Date().toLocaleDateString('he-IL', {
@@ -85,19 +122,39 @@ export default function HomeScreen() {
           {/* Stats */}
           <View style={styles.statsRow}>
             <View style={styles.statCard}>
-              <Text style={styles.statNum}>0</Text>
+              <Text style={styles.statNum}>{upcomingEvents.length}</Text>
               <Text style={styles.statLabel}>📅 אירועים</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNum}>0</Text>
+              <Text style={styles.statNum}>{pendingItemsCount}</Text>
               <Text style={styles.statLabel}>🛒 פריטים</Text>
             </View>
             <View style={styles.statCard}>
-              <Text style={styles.statNum}>0</Text>
+              <Text style={styles.statNum}>{pendingTasksCount}</Text>
               <Text style={styles.statLabel}>✅ מטלות</Text>
             </View>
           </View>
         </View>
+
+        {/* Upcoming Events */}
+        {upcomingEvents.length > 0 && (
+          <View style={styles.upcomingSection}>
+            <Text style={styles.sectionTitle}>אירועים קרובים</Text>
+            {upcomingEvents.map((e) => {
+              const d = e.date?.toDate ? e.date.toDate() : new Date(e.date as any);
+              const dateStr = d.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' });
+              return (
+                <TouchableOpacity key={e.id} style={styles.upcomingCard} onPress={() => router.push('/(tabs)/calendar')}>
+                  <Text style={styles.upcomingIcon}>{CATEGORY_ICONS[e.category] ?? '📌'}</Text>
+                  <View style={styles.upcomingInfo}>
+                    <Text style={styles.upcomingTitle}>{e.title}</Text>
+                    <Text style={styles.upcomingDate}>{dateStr}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
         {/* Features Grid */}
         <View style={styles.body}>
@@ -203,4 +260,12 @@ const styles = StyleSheet.create({
 
   // Date
   dateText: { fontSize: 13, color: Colors.textMuted, textAlign: 'right', marginTop: 24 },
+
+  // Upcoming events
+  upcomingSection: { paddingHorizontal: 24, paddingTop: 24 },
+  upcomingCard: { backgroundColor: Colors.white, borderRadius: 16, padding: 14, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: Colors.cardBorder },
+  upcomingIcon: { fontSize: 24 },
+  upcomingInfo: { flex: 1 },
+  upcomingTitle: { fontSize: 14, fontWeight: '700', color: Colors.text, textAlign: 'right' },
+  upcomingDate: { fontSize: 12, color: Colors.textMuted, textAlign: 'right', marginTop: 2 },
 });

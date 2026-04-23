@@ -65,3 +65,7 @@ export async function getFamilyMembers(familyId: string): Promise<FamilyUser[]> 
 export async function updateUserName(userId: string, name: string): Promise<void> {
   await updateDoc(doc(db, 'Users', userId), { name });
 }
+
+export async function removeFamilyMember(memberId: string): Promise<void> {
+  await updateDoc(doc(db, 'Users', memberId), { familyId: null });
+}
